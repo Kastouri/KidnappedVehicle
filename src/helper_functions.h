@@ -14,6 +14,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <iostream>
 #include "map.h"
 
 // for portability of M_PI (Vis Studio, MinGW, etc.)
@@ -59,13 +60,18 @@ inline double dist(double x1, double y1, double x2, double y2) {
 }
 
 /**
- * Transforms a vector from the cars coordinates to the maps coordinates.
- * @param (x_car,y_car) x and y coordinates in the car's coordinate system
- * @output Coordinates in the map's coordinate system
+ * Computes exp ((x - mu)T * E * (x - mu)) .
+ * @param (x,y) x and y coordinates of first point
+ * @param (mu_x, mu_y) mu_x and mu_y coordinates of the landmark
+ * @param (sig_x, sig_y) x and y coordinates of second point
+ * @output Euclidean distance between two 2D points
  */
-//inline double dist(double x1, double y1, double x2, double y2) {
-//  return sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
-//}
+inline double exp_w(double x, double y, double mu_x, double mu_y, double sig_x, double sig_y) {
+  double result = exp( -1.0/2.0 *(1.0/sig_x * (x - mu_x) * (x - mu_x) + 1.0/sig_y * (y - mu_y) * (y - mu_y)));
+  //std::cout << "exp inputs  "<< x << "  " << mu_x << "  " << mu_y<< "  " << sig_x << " "<< sig_y <<std::endl;
+  //std::cout << "exp resturns = "<< result <<std::endl;
+  return result; 
+}
 
 
 /**

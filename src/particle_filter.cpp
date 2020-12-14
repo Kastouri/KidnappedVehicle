@@ -31,33 +31,38 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
    * NOTE: Consult particle_filter.h for more information about this method 
    *   (and others in this file).
    */
-  num_particles = 1000;  // TODO: Set the number of particles
-  
-  // instantiate random engine
-  std::default_random_engine gen;
-  // standard diviations
-  double std_x = std[0];
-  double std_y = std[1];
-  double std_theta = std[2];
-  // define normal distributions
-  normal_distribution<double> dist_x(x, std_x);
-  normal_distribution<double> dist_y(y, std_y);
-  normal_distribution<double> dist_theta(theta, std_theta);
-  std::cout << "Initializing Particles ..." << std::endl;
-  for (int i=0; i < num_particles; ++i){
-    Particle nparticle;
-    nparticle.id = i;
-    nparticle.x = dist_x(gen);  // take sample of normal distribution and store to Particle
-    nparticle.y = dist_y(gen);
-    nparticle.theta = dist_theta(gen); 
-    //nparticle.weight = 1.0 / num_particles;
-    std::cout << "  Particle " << nparticle.id << ": x = " << nparticle.x << " y = " << nparticle.y << std::endl; 
-    // save partile in filter
-    particles.push_back(nparticle);
+  if (is_initialized == false){
+    num_particles = 100;  // TODO: Set the number of particles
+      
+      // standard diviations
+      double std_x = std[0];
+      double std_y = std[1];
+      double std_theta = std[2];
+      
+      // instantiate random engine
+        std::default_random_engine gen;
+        // define normal distributions
+        normal_distribution<double> dist_x(x, std_x);
+        normal_distribution<double> dist_y(y, std_y);
+        normal_distribution<double> dist_theta(theta, std_theta);
+
+      std::cout << "Initializing Particles ..." << std::endl;
+      for (int i=0; i < num_particles; ++i){
+        Particle nparticle;
+        nparticle.id = i;
+        nparticle.x = dist_x(gen);  // take sample of normal distribution and store to Particle
+        nparticle.y = dist_y(gen);
+        nparticle.theta = dist_theta(gen); 
+        nparticle.weight = 1.0;
+        std::cout << "  Particle " << nparticle.id << ": x = " << nparticle.x << " y = " << nparticle.y << std::endl; 
+        
+        // save partile in filter
+        particles.push_back(nparticle);
+      }
+      
+    // set initialization flag
+    is_initialized = true;
   }
-  
-  // set initialization flag
-  is_initialized = true;
 }
 
 void ParticleFilter::prediction(double delta_t, double std_pos[], 
@@ -106,7 +111,7 @@ void ParticleFilter::prediction(double delta_t, double std_pos[],
     // updtae particles
     particles[i].x= x_f + dist_x(gen);
     particles[i].y = y_f + dist_y(gen);
-    particles[theta].theta = theta_f + dist_theta(gen);
+    particles[i].theta = theta_f + dist_theta(gen);
     
     // print initialization information
     std::cout << "Inputs: theta=" << velocity << " yaw_rate=" << yaw_rate << std::endl;
@@ -152,7 +157,11 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     
     // neu weight
     double weight = 1.0;  // this variable will hold the product calculating the weight 
-
+    //
+    if (observations.size() == 0) {
+      std::cout << "WARNING: no observations" << std::endl;
+      continue;
+    }
     for(int i = 0; i < observations.size(); i++){  // for each observation
 
       double x_obs, y_obs;  // coordinates of the observation in the car's cooridinate system
@@ -166,19 +175,27 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
       x_obs_map = x_p + cos(theta) * x_obs - sin(theta) * y_obs;
       y_obs_map = y_p + sin(theta) * x_obs + cos(theta) * y_obs;
       
+      // skip observation if it is outside the sensor range of the particle
+      if (dist(x_obs_map,y_obs_map,x_p,y_p) > sensor_range) { 
+        std::cout << "WARNING: observation is not in the range of particle" << std::endl;
+        continue;
+      } 
+      
       //std::cout << "Cordinates in the Cars Coordinates System: x=" << x_obs << " y=" << y_obs << std::endl;
       //std::cout << "Cordinates in the Cars Coordinates System: x=" << x_obs_map << " y=" << y_obs_map << std::endl;
       
       
       // map the predicted observation to the closest landmark
-      double best_dist = 50; // initialize distance to a big number
+      double best_dist = 100000; // initialize distance to a big number
       double best_x, best_y;
       int best_id;
+
       for (int lm_i = 0 ; lm_i < map_landmarks.landmark_list.size(); ++lm_i){
-        
+
         // calculate distance
         double x_land = map_landmarks.landmark_list[lm_i].x_f;
         double y_land = map_landmarks.landmark_list[lm_i].y_f;
+        
         //std::cout << "Coordinates of predicted measurement in maps system: x=" << x_land<< " y=" << y_land << std::endl;
         double distance = dist(x_land, y_land, x_obs_map, y_obs_map); 
         
@@ -189,21 +206,27 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
           best_y = y_land;
         }
       }
-      // take best measurement into the product
-      weight = weight * exp_w(x_obs_map, y_obs_map, best_x, best_y, std_x_lm,  std_y_lm);
+      //if (best_dist < sensor_range){
+        // take best measurement into the product
+        double obs_prob = exp_w(x_obs_map, y_obs_map, best_x, best_y, std_x_lm,  std_y_lm);
+        obs_prob = obs_prob / (2.0 * M_PI * std_x_lm * std_y_lm); 
+        if (obs_prob < 0.000001) {obs_prob = 0.000001;}
+        weight = weight * obs_prob;
+      //}
+      
     }
-    // normalize the weight
-    weight = weight / sqrt(abs(2.0 * M_PI * std_x_lm * std_y_lm));
+    
     // add weight to sum
     weights_sum += weight;
     // set particles new weight
+    if (weight < 0.0000001) { weight = 0.0000001;}
     particles[p].weight = weight;
     std::cout << "Particle "<< p << "'s neu weight=" << weight << std::endl;
   }
   // normalize the weights bei their sum
-  for (int p = 0; p < particles.size(); ++p) {
-    particles[p].weight = particles[p].weight / weights_sum; 
-  }
+  //for (int p = 0; p < particles.size(); ++p) {
+    //particles[p].weight = particles[p].weight / weights_sum; 
+  //}
 }
 
 void ParticleFilter::resample() {
@@ -230,17 +253,20 @@ void ParticleFilter::resample() {
   // find the maximum weight
   const double max_weight = *std::max_element(weights.begin(), weights.end());
 
-  // draw discrete index
-  int index = rand() % num_particles;
-  double beta = 0.0;
-
-  // continious distribution for beta
   std::default_random_engine gen;
-  std::uniform_real_distribution<double> dist_beta(0.0 , max_weight);
+  
+  // draw discrete index
+  std::uniform_int_distribution<int> dist_index(0, num_particles-1);
+  int index = dist_index(gen);
+  
+  
+  double beta = 0.0;
+  // continious distribution for beta
+  
 
   for (int p = 0; p < num_particles; ++p){
-    
-    beta += dist_beta(gen) * 2.0;
+    std::uniform_real_distribution<double> dist_beta(0.0 , max_weight * 2.0);
+    beta += dist_beta(gen);
     while (beta > particles[index].weight){
       beta -= particles[index].weight;
       index = (index + 1) % num_particles;

@@ -69,12 +69,11 @@ inline double dist(double x1, double y1, double x2, double y2) {
 inline double exp_w(double x, double y, double mu_x, double mu_y, double sig_x, double sig_y) {
   double sig_x_2 = sig_x * sig_x;
   double sig_y_2 = sig_y * sig_y;
-  double result = exp( -1.0/2.0 *(1.0/(sig_x_2) * pow((x - mu_x),2) + 1.0/sig_y_2 * pow((y - mu_y),2)));
+  double result = exp( -1.0/2.0 *(pow((x - mu_x),2.0) / sig_x_2 + pow((y - mu_y),2.0) / sig_y_2));
   //std::cout << "exp inputs  "<< x << "  " << mu_x << "  " << mu_y<< "  " << sig_x << " "<< sig_y <<std::endl;
   //std::cout << "exp resturns = "<< result <<std::endl;
   return result; 
 }
-
 
 /**
  * Computes the error between ground truth and particle filter data.

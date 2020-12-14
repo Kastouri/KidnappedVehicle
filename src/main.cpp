@@ -76,7 +76,6 @@ int main() {
             double previous_velocity = std::stod(j[1]["previous_velocity"].get<string>());
             double previous_yawrate = std::stod(j[1]["previous_yawrate"].get<string>());
             pf.prediction(delta_t, sigma_pos, previous_velocity, previous_yawrate);
-            std::cout << " ------------------ just did predection ---------------------- " << std::endl;
           }
 
           // receive noisy observation data from the simulator

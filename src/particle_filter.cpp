@@ -46,7 +46,7 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
         normal_distribution<double> dist_y(y, std_y);
         normal_distribution<double> dist_theta(theta, std_theta);
 
-      std::cout << "Initializing Particles ..." << std::endl;
+      //std::cout << "Initializing Particles ..." << std::endl;
       for (int i=0; i < num_particles; ++i){
         Particle nparticle;
         nparticle.id = i;
@@ -54,7 +54,7 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
         nparticle.y = dist_y(gen);
         nparticle.theta = dist_theta(gen); 
         nparticle.weight = 1.0;
-        std::cout << "  Particle " << nparticle.id << ": x = " << nparticle.x << " y = " << nparticle.y << std::endl; 
+        //std::cout << "  Particle " << nparticle.id << ": x = " << nparticle.x << " y = " << nparticle.y << std::endl; 
         
         // save partile in filter
         particles.push_back(nparticle);
@@ -114,8 +114,8 @@ void ParticleFilter::prediction(double delta_t, double std_pos[],
     particles[i].theta = theta_f + dist_theta(gen);
     
     // print initialization information
-    std::cout << "Inputs: theta=" << velocity << " yaw_rate=" << yaw_rate << std::endl;
-    std::cout << "prediction x="<< x_f << " y=" << y_f << " theta=" << theta_f << std::endl;
+    //std::cout << "Inputs: theta=" << velocity << " yaw_rate=" << yaw_rate << std::endl;
+    //std::cout << "prediction x="<< x_f << " y=" << y_f << " theta=" << theta_f << std::endl;
   }
 
 }
@@ -159,14 +159,13 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     double weight = 1.0;  // this variable will hold the product calculating the weight 
     //
     if (observations.size() == 0) {
-      std::cout << "WARNING: no observations" << std::endl;
+      //std::cout << "WARNING: no observations" << std::endl;
       continue;
     }
     for(int i = 0; i < observations.size(); i++){  // for each observation
 
       double x_obs, y_obs;  // coordinates of the observation in the car's cooridinate system
       double x_obs_map, y_obs_map; // coordinates of the observation in the map's cooridinate system
-      LandmarkObs obs_map;  // hold one observation given in the maps cooridinate system 
       
       x_obs = observations[i].x;
       y_obs = observations[i].y;
@@ -177,7 +176,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
       
       // skip observation if it is outside the sensor range of the particle
       if (dist(x_obs_map,y_obs_map,x_p,y_p) > sensor_range) { 
-        std::cout << "WARNING: observation is not in the range of particle" << std::endl;
+        //std::cout << "WARNING: observation is not in the range of particle" << std::endl;
         continue;
       } 
       
@@ -188,8 +187,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
       // map the predicted observation to the closest landmark
       double best_dist = 100000; // initialize distance to a big number
       double best_x, best_y;
-      int best_id;
-
+      
       for (int lm_i = 0 ; lm_i < map_landmarks.landmark_list.size(); ++lm_i){
 
         // calculate distance
@@ -221,7 +219,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     // set particles new weight
     if (weight < 0.0000001) { weight = 0.0000001;}
     particles[p].weight = weight;
-    std::cout << "Particle "<< p << "'s neu weight=" << weight << std::endl;
+    //std::cout << "Particle "<< p << "'s neu weight=" << weight << std::endl;
   }
   // normalize the weights bei their sum
   //for (int p = 0; p < particles.size(); ++p) {
@@ -244,8 +242,7 @@ void ParticleFilter::resample() {
   vector<Particle> particles_n;  // new set of particles
   vector<double> weights;
 
-  // sum the weights
-  double weights_sum = 0.0;
+  // collect the weights
   for (int p = 0; p < particles.size(); ++p) {
     weights.push_back(particles[p].weight);
   }

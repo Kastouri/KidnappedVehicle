@@ -1,13 +1,45 @@
-# Overview
-This repository contains all the code needed to complete the final project for the Localization course in Udacity's Self-Driving Car Nanodegree.
+[bicycle_model]: ./doc/bicycle_model.png "Model Visualization"
 
-#### Submission
-All you will need to submit is your `src` directory. You should probably do a `git pull` before submitting to verify that your project passes the most up-to-date version of the grading code (there are some parameters in `src/main.cpp` which govern the requirements on accuracy and run time).
+# Overview
+This repository contains my implementation of the final project for the Localization course in Udacity's Self-Driving Car Nanodegree.
 
 ## Project Introduction
 Your robot has been kidnapped and transported to a new location! Luckily it has a map of this location, a (noisy) GPS estimate of its initial location, and lots of (noisy) sensor and control data.
 
 In this project you will implement a 2 dimensional particle filter in C++. Your particle filter will be given a map and some initial localization information (analogous to what a GPS would provide). At each time step your filter will also get observation and control data.
+##  Implementation of the Particle Filter
+### Initialization: 
+The filter starts with initializing the particles. The initialization is composed of the following steps:
+* First the number of particles is set
+* The coordinates x, y and the orientation (yaw) are generate using a gaussian distribution centered at the initial given GPS estimate.
+* The weights of the particles are set to 1.
+### Prediction:
+Given the (noisy) control data (velocity und the yaw rate) , the new postion of each particle is predicted. A random erßror is added to the predicted values to accoun for the noise in the measurement.
+If the yaw rate is large enough, a bicycle model is used to predict the particle's new position.
+
+<div style="text-align:center"><img src="./doc/bicycle_model.png" width="400">
+</div>
+
+To avoid a zero division, a linear motion model is used if the yaw rate is too small.
+
+### Update:
+In the update step the weight of each particle is recalculated.
+For each observation : 
+* the observation is transformed from the partile's cooridinate system to the maps coordinate system. The transformation is done using a homogeneous transformation.
+* the observation is than matched to the closest landmark and the probabity that the observation corresponds to the chosen landmark is calculated.
+* the total weight of the paticle is calculated as the product of all the probabilities of the observations.
+### Resampling
+The resampling follows the survival of the fittest principle, i.e the particles that are more lilely to descripe the car's true location should survive.
+I used the wheel approach described in the lessons. The particles with the largest weights are more likely to get picked.
+
+## demo 
+The following animations shows how the filter successfully localizes the car. The blue cicle shows the position estimated by the filter (with 50 particles). 
+<div style="text-align:center"><img src="./doc/kidnapped.gif" width="600">
+</div>
+
+
+## How many particles are needed ?
+
 
 ## Running the Code
 This project involves the Term 2 Simulator which can be downloaded [here](https://github.com/udacity/self-driving-car-sim/releases)

@@ -100,6 +100,7 @@ void ParticleFilter::prediction(double delta_t, double std_pos[],
       // yaw_rate = (yaw_rate > 0) ?  0.0000000001: -0.0000000001;
       x_f = x + velocity * delta_t * cos(theta);
       y_f = y + velocity * delta_t * sin(theta);
+      theta_f = theta;
     } else
     {   // bike model
       x_f = x + velocity/yaw_rate * (sin(theta + yaw_rate * delta_t) - sin(theta));

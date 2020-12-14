@@ -2,11 +2,16 @@
 
 # Overview
 This repository contains my implementation of the final project for the Localization course in Udacity's Self-Driving Car Nanodegree.
+The original Udacity repository can be found [here](https://github.com/udacity/CarND-Kidnapped-Vehicle-Project)
 
 ## Project Introduction
 Your robot has been kidnapped and transported to a new location! Luckily it has a map of this location, a (noisy) GPS estimate of its initial location, and lots of (noisy) sensor and control data.
 
 In this project you will implement a 2 dimensional particle filter in C++. Your particle filter will be given a map and some initial localization information (analogous to what a GPS would provide). At each time step your filter will also get observation and control data.
+<div style="text-align:center"><img src="./doc/with_teminal.png" width="600">
+</div>
+
+
 ##  Implementation of the Particle Filter
 ### Initialization: 
 The filter starts with initializing the particles. The initialization is composed of the following steps:
@@ -19,6 +24,8 @@ If the yaw rate is large enough, a bicycle model is used to predict the particle
 
 <div style="text-align:center"><img src="./doc/bicycle_model.png" width="400">
 </div>
+
+
 
 To avoid a zero division, a linear motion model is used if the yaw rate is too small.
 
@@ -39,7 +46,20 @@ The following animations shows how the filter successfully localizes the car. Th
 
 
 ## How many particles are needed ?
+30 particles are already enough to meet the project requirements. 
+The followign table shows some experiments with diffirent number of particles:
 
+| number of particles      | x-error    | y-error     | yaw-error| time | 
+| :------------- | :----------: | :-----------: |:-----------: |-----------: |
+| 20 | FAILED   | FAILED    | FAILED    | FAILED
+| 30 | 0.123   | 0.126    | 0.005    | 48.86 
+| 40 | 0.125   | 0.115    | 0.004    | 48.86
+| 40 | 0.125   | 0.115    | 0.004    | 48.86
+| 100 | 0.114 | 0.110 | 0.004 | 48.86
+| 500 | 0.122   | 0.114    | 0.005    | 49.02
+| 1000 | 0.109   | 0.103    | 0.004    | 71.66
+
+Screen shots of the experiment can be found in ./doc.
 
 ## Running the Code
 This project involves the Term 2 Simulator which can be downloaded [here](https://github.com/udacity/self-driving-car-sim/releases)

@@ -32,7 +32,7 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
    *   (and others in this file).
    */
   if (is_initialized == false){
-    num_particles = 100;  // TODO: Set the number of particles
+    num_particles = 50;  // TODO: Set the number of particles
       
       // standard diviations
       double std_x = std[0];
